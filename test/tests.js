@@ -429,5 +429,40 @@ describe('RobustWebSocket', function() {
         ws.onclose.should.not.have.been.called
       })
     })
+
+    it('should not invoke the url as a function for each new websocket', function() {
+      var url = sinon.spy(function() {
+          return serverUrl + '/echo';
+      });
+      ws = new RobustWebSocket(url)
+      ws.onclose = sinon.spy()
+      ws.onopen = sinon.spy()
+
+      return pollUntilPassing(function() {
+        ws.onopen.should.have.been.calledOnce
+        ws.onclose.should.have.not.been.called
+        ws.readyState.should.equal(WebSocket.OPEN)
+          url.should.have.been.called.calledOnce
+      }).then(function() {
+        ws.close()
+
+        return pollUntilPassing(function() {
+            ws.onopen.should.have.been.calledOnce
+            ws.onclose.should.have.been.calledOnce
+            ws.readyState.should.equal(WebSocket.CLOSED)
+        })
+      }).then(function() {
+        return Promise.delay(100)
+      }).then(function() {
+        ws.open()
+
+        return pollUntilPassing(function() {
+            ws.onopen.should.have.been.calledTwice
+            ws.onclose.should.have.been.calledOnce
+            ws.readyState.should.equal(WebSocket.OPEN)
+            url.should.have.been.called.calledTwice
+        })
+      })
+    })
   })
 })

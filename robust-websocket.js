@@ -145,8 +145,9 @@
     })
 
     function newWebSocket() {
+      var urlActual = (Object.prototype.toString.call(url) === '[object Function]') ? url() : url;
       pendingReconnect = null
-      realWs = new WebSocket(url, protocols || undefined)
+      realWs = new WebSocket(urlActual, protocols || undefined)
       realWs.binaryType = self.binaryType
 
       attempts++
